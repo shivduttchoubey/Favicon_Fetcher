@@ -4,31 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Favicon Fetcher</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Idea source: https://dev.to/derlin/get-favicons-from-any-website-using-a-hidden-google-api-3p1e -->
-</head>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+    </head>
 <body>
     <div class="container">
-        <h1>Favicon Fetcher</h1>
-        <p>Enter a domain to fetch its favicon, download it, or generate SVG.</p>
-        <div class="input-container">
-            <input type="text" id="domain" placeholder="Enter domain (e.g., example.com)">
-            <button onclick="fetchFavicon()">Get Favicon</button>
-        </div>
-        <div id="result" class="result">
-            <h3>Favicon Preview</h3>
-            <img id="favicon" src="" alt="Favicon will appear here">
-            <div class="actions">
-                <button id="downloadBtn" style="display: none;" onclick="downloadFavicon()">Download Favicon</button>
-                <button id="generateSVGBtn" style="display: none;" onclick="generateSVG()">Generate SVG</button>
+        <div class="card">
+            <h1>Favicon Fetcher</h1>
+            <p class="description">Enter a domain to fetch its favicon, download it, or generate SVG.</p>
+            
+            <div class="input-container">
+                <input type="text" id="domain" placeholder="Enter domain (e.g., example.com)" />
+                <button onclick="fetchFavicon()">Get Favicon</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <span>Loading...</span>
+            </div>
+
+            <div id="result" class="result">
+                <div id="faviconPreview" class="favicon-preview">
+                    <img id="favicon" alt="Favicon preview" />
+                </div>
+                
+                <div class="actions">
+                    <button id="downloadBtn" style="display: none;" onclick="downloadFavicon()">Download PNG</button>
+                    <button id="generateSVGBtn" style="display: none;" onclick="generateSVG()">Generate SVG</button>
+                </div>
+            </div>
+
+            <div id="svgContainer" class="svg-container">
+                <h3>SVG Code</h3>
+                <textarea id="svgCode" readonly></textarea>
+                <button onclick="copySVG()">Copy SVG Code</button>
             </div>
         </div>
-        <div id="svgContainer" class="svg-container" style="display: none;">
-            <h3>SVG Code</h3>
-            <textarea id="svgCode" readonly></textarea>
-            <button onclick="copySVG()">Copy SVG Code</button>
-        </div>
     </div>
-    <script src="script.js"></script>
+
+   
 </body>
 </html>

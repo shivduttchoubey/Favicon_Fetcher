@@ -1,57 +1,105 @@
-async function fetchFavicon() {
-    const domain = document.getElementById('domain').value;
-    if (!domain) {
-        alert('Please enter a domain.');
-        return;
-    }
 
-    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
-    const faviconImg = document.getElementById('favicon');
-    faviconImg.src = faviconUrl;
-    faviconImg.style.display = 'block';
+        async function fetchFavicon() {
+            const domain = document.getElementById('domain').value.trim();
+            if (!domain) {
+                alert('Please enter a domain.');
+                return;
+            }
 
-    document.getElementById('downloadBtn').style.display = 'inline-block';
-    document.getElementById('generateSVGBtn').style.display = 'inline-block';
-}
+            // Show loading
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('faviconPreview').style.display = 'none';
+            document.getElementById('downloadBtn').style.display = 'none';
+            document.getElementById('generateSVGBtn').style.display = 'none';
+            document.getElementById('svgContainer').style.display = 'none';
 
-function downloadFavicon() {
-    const domain = document.getElementById('domain').value;
-    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+            try {
+                const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+                const faviconImg = document.getElementById('favicon');
+                
+                // Create a promise that resolves when the image loads
+                const loadImage = new Promise((resolve, reject) => {
+                    faviconImg.onload = resolve;
+                    faviconImg.onerror = reject;
+                });
 
-    const link = document.createElement('a');
-    link.href = faviconUrl;
-    link.download = `${domain}-favicon.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
+                faviconImg.src = faviconUrl;
+                await loadImage;
 
-async function generateSVG() {
-    const domain = document.getElementById('domain').value;
-    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
-    const svgContainer = document.getElementById('svgContainer');
-    const svgCode = document.getElementById('svgCode');
+                document.getElementById('faviconPreview').style.display = 'block';
+                document.getElementById('downloadBtn').style.display = 'inline-block';
+                document.getElementById('generateSVGBtn').style.display = 'inline-block';
+            } catch (error) {
+                alert('Failed to load favicon. Please check the domain and try again.');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
 
-    const response = await fetch(faviconUrl);
-    const blob = await response.blob();
-    const base64 = await blobToBase64(blob);
+        async function downloadFavicon() {
+            const domain = document.getElementById('domain').value;
+            const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
-    svgCode.value = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><image href="data:image/png;base64,${base64}" width="128" height="128"/></svg>`;
-    svgContainer.style.display = 'block';
-}
+            try {
+                const response = await fetch(faviconUrl);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${domain}-favicon.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                alert('Failed to download favicon. Please try again.');
+            }
+        }
 
-function blobToBase64(blob) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
-}
+        async function generateSVG() {
+            const domain = document.getElementById('domain').value;
+            const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+            const svgContainer = document.getElementById('svgContainer');
+            const svgCode = document.getElementById('svgCode');
 
-function copySVG() {
-    const svgCode = document.getElementById('svgCode');
-    svgCode.select();
-    document.execCommand('copy');
-    alert('SVG code copied to clipboard!');
-}
+            try {
+                const response = await fetch(faviconUrl);
+                const blob = await response.blob();
+                const base64 = await blobToBase64(blob);
+                
+                const svgTemplate = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+    <image href="data:image/png;base64,${base64}" width="128" height="128"/>
+</svg>`;
+                
+                svgCode.value = svgTemplate;
+                svgContainer.style.display = 'block';
+            } catch (error) {
+                alert('Failed to generate SVG. Please try again.');
+            }
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const base64String = reader.result;
+                    resolve(base64String.split(',')[1]);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function copySVG() {
+            const svgCode = document.getElementById('svgCode');
+            svgCode.select();
+            document.execCommand('copy');
+            alert('SVG code copied to clipboard!');
+        }
+
+        // Add enter key support for the input field
+        document.getElementById('domain').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                fetchFavicon();
+            }
+        });
